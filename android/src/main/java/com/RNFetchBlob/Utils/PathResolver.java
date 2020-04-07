@@ -14,6 +14,7 @@ import com.RNFetchBlob.RNFetchBlobUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileOutputStream;
+import android.util.Log;
 
 public class PathResolver {
     @TargetApi(19)
@@ -23,13 +24,16 @@ public class PathResolver {
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            Log.w("TAG OLOLOL", "111111");
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
+                Log.w("TAG OLOLOL", "1111112222222");
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
+                    Log.w("TAG OLOLOL", "11111133333333");
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
                 }
 
@@ -37,21 +41,43 @@ public class PathResolver {
             }
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
+                Log.w("TAG OLOLOL", "2222222");
                 try {
                     final String id = DocumentsContract.getDocumentId(uri);
-                    //Starting with Android O, this "id" is not necessarily a long (row number),
-                    //but might also be a "raw:/some/file/path" URL
+
                     if (id != null && id.startsWith("raw:/")) {
                         Uri rawuri = Uri.parse(id);
                         String path = rawuri.getPath();
                         return path;
                     }
-                    final Uri contentUri = ContentUris.withAppendedId(
-                            Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
 
-                    return getDataColumn(context, contentUri, null, null);
-                }
+                    // final Uri contentUri = ContentUris.withAppendedId(
+                    //         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+                    return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString();
+
+                    // String[] contentUriPrefixesToTry = new String[]{
+                    //     "content://downloads/public_downloads",
+                    //     "content://downloads/my_downloads",
+                    //     "content://downloads/all_downloads"
+                    // };
+
+                    // for (String contentUriPrefix : contentUriPrefixesToTry) {
+                    //     Uri contentUri = ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
+                    //     try {
+                    //         String path = getDataColumn(context, contentUri, null, null);
+                    //         if (path != null) {
+                    //             Log.w("TAG OLOLOL", path);
+                    //             return path;
+                    //         }
+                    //     } catch (Exception e) {
+                    //         Log.w("TAG OLOLOL111111111111", e.getLocalizedMessage());
+                    //     }
+                    // }
+                        // return getDataColumn(context, contentUri, null, null);
+                    }
                 catch (Exception ex) {
+                    Log.w("TAG OLOLOL", ex.getLocalizedMessage());
+                    Log.w("TAG OLOLOL", "NULL 11111");
                     //something went wrong, but android should still be able to handle the original uri by returning null here (see readFile(...))
                     return null;
                 }
@@ -59,6 +85,7 @@ public class PathResolver {
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
+                Log.w("TAG OLOLOL", "isMediaDocument(uri)");
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
@@ -80,7 +107,7 @@ public class PathResolver {
                 return getDataColumn(context, contentUri, selection, selectionArgs);
             }
             else if ("content".equalsIgnoreCase(uri.getScheme())) {
-
+Log.w("TAG OLOLOL", "equalsIgnoreCase(uri.getScheme())");
                 // Return the remote address
                 if (isGooglePhotosUri(uri))
                     return uri.getLastPathSegment();
@@ -89,6 +116,7 @@ public class PathResolver {
             }
             // Other Providers
             else{
+                Log.w("TAG OLOLOL", "Other Providers");
                 try {
                     InputStream attachment = context.getContentResolver().openInputStream(uri);
                     if (attachment != null) {
@@ -107,13 +135,14 @@ public class PathResolver {
                     }
                 } catch (Exception e) {
                     RNFetchBlobUtils.emitWarningEvent(e.toString());
+                    Log.w("TAG OLOLOL", "NULL 2222222");
                     return null;
                 }
             }
         }
         // MediaStore (and general)
         else if ("content".equalsIgnoreCase(uri.getScheme())) {
-
+Log.w("TAG OLOLOL", "MediaStore (and general)");
             // Return the remote address
             if (isGooglePhotosUri(uri))
                 return uri.getLastPathSegment();
@@ -122,9 +151,10 @@ public class PathResolver {
         }
         // File
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            Log.w("TAG OLOLOL", "// File");
             return uri.getPath();
         }
-
+Log.w("TAG OLOLOL", "NULL 333333");
         return null;
     }
 
@@ -137,6 +167,7 @@ public class PathResolver {
             cursor.close();
             return name;
         }
+        Log.w("TAG OLOLOL", "NULL 444444");
         return null;
     }
 
@@ -159,7 +190,7 @@ public class PathResolver {
         final String[] projection = {
                 column
         };
-
+Log.w("GET_DATA_COLUMN uri = ", uri.toString());
         try {
             cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
                     null);
@@ -170,6 +201,9 @@ public class PathResolver {
         }
         catch (Exception ex) {
             ex.printStackTrace();
+
+            Log.w("TAG OLOLOL", "NULL 55555");
+            Log.e("MYAPP OLOLOL", "exception", ex);
             return null;
         }
         finally {
